@@ -18,7 +18,7 @@ size = Vector3( 512, 0.4, 512 )
 [node name="TestWorld" type="Spatial"]
 
 [node name="Car" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 0.987461, -0.157865, 0, 0.157865, 0.987461, 0, 1.65621, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65621, 0 )
 
 [node name="StaticBody" type="StaticBody" parent="."]
 
