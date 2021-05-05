@@ -24,20 +24,9 @@ public class RoadManager : Spatial
         }
     }
 
-    /*public override void _Ready()
+    public override void _Ready()
     {
         if (!Engine.EditorHint) Generate();
-    }*/
-
-    bool generating = false;
-
-    public override void _PhysicsProcess(float delta)
-    {
-        if (!Engine.EditorHint && Input.IsActionJustPressed("ui_select")) {
-            if (generating) return;
-            generating = true;
-            Generate();
-        }
     }
 
     private void Generate() {
