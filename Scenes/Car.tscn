@@ -1,60 +1,103 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://Scenes/Wheel.tscn" type="PackedScene" id=1]
-[ext_resource path="res://Scripts/GameCamera.cs" type="Script" id=2]
 [ext_resource path="res://Scripts/Car.cs" type="Script" id=3]
 
-[sub_resource type="SpatialMaterial" id=1]
+[sub_resource type="SpatialMaterial" id=6]
 flags_unshaded = true
 
-[sub_resource type="CubeMesh" id=2]
-material = SubResource( 1 )
+[sub_resource type="CubeMesh" id=7]
+material = SubResource( 6 )
 size = Vector3( 1, 0.5, 2 )
 
-[sub_resource type="BoxShape" id=3]
-extents = Vector3( 0.5, 0.25, 1 )
+[sub_resource type="BoxShape" id=8]
+extents = Vector3( 0.5, 0.252, 1 )
+
+[sub_resource type="Curve" id=9]
+_data = [ Vector2( 0, 1 ), 0.0, 0.013993, 0, 0, Vector2( 1, 0.156442 ), 0.0760313, 0.0, 0, 0 ]
+
+[sub_resource type="Curve" id=5]
+_data = [ Vector2( 0, 1 ), 0.0, -1.53456, 0, 0, Vector2( 1, 0.168712 ), -0.0545031, 0.0, 0, 0 ]
 
 [node name="Car" type="RigidBody"]
+mass = 2.0
 script = ExtResource( 3 )
+motorForce = 8.0
+revForce = 5.0
+maxSteeringAngle = 20.0
 
 [node name="Mesh" type="MeshInstance" parent="."]
-mesh = SubResource( 2 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.316599, 0 )
+mesh = SubResource( 7 )
 material/0 = null
 
 [node name="Col" type="CollisionShape" parent="."]
-shape = SubResource( 3 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.316599, 0 )
+shape = SubResource( 8 )
 
 [node name="Wheels" type="Spatial" parent="."]
-
-[node name="BR" parent="Wheels" instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0, 0.6 )
-maxRange = 0.4
-previewFrequency = 1.0
-minRange = 0.2
-springAngularDrag = 8.0
-
-[node name="BL" parent="Wheels" instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0, 0.6 )
-maxRange = 0.4
-previewFrequency = 1.0
-minRange = 0.2
-springAngularDrag = 8.0
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.316599, 0 )
 
 [node name="FR" parent="Wheels" instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0, -0.6 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0, 0.6 )
 maxRange = 0.4
-previewFrequency = 1.0
-minRange = 0.2
 springAngularDrag = 8.0
+sideFrictionCurve = SubResource( 9 )
+minRange = 0.2
+springForce = 24.0
+previewFrequency = 1.0
+steer = true
+forwardFriction = 2.0
+sideSlipMax = 4.0
+forwardFrictionCurve = SubResource( 5 )
+maxSteerForce = 0.5
+forwardSlipMax = 2.0
+sideFriction = 10.0
 
 [node name="FL" parent="Wheels" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0, 0.6 )
+maxRange = 0.4
+springAngularDrag = 8.0
+sideFrictionCurve = SubResource( 9 )
+minRange = 0.2
+springForce = 24.0
+previewFrequency = 1.0
+steer = true
+forwardFriction = 2.0
+sideSlipMax = 4.0
+forwardFrictionCurve = SubResource( 5 )
+maxSteerForce = 0.5
+forwardSlipMax = 2.0
+sideFriction = 10.0
+
+[node name="BR" parent="Wheels" instance=ExtResource( 1 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0, -0.6 )
+maxRange = 0.4
+springAngularDrag = 8.0
+sideFrictionCurve = SubResource( 9 )
+minRange = 0.2
+motor = true
+springForce = 24.0
+previewFrequency = 1.0
+forwardFriction = 2.0
+sideSlipMax = 4.0
+forwardFrictionCurve = SubResource( 5 )
+maxSteerForce = 0.5
+forwardSlipMax = 2.0
+sideFriction = 10.0
+
+[node name="BL" parent="Wheels" instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0, -0.6 )
 maxRange = 0.4
-previewFrequency = 1.0
-minRange = 0.2
 springAngularDrag = 8.0
-
-[node name="Camera" type="Camera" parent="."]
-transform = Transform( 1, 0, 0, 0, 0.995983, 0.0895375, 0, -0.0895375, 0.995983, 2.38419e-07, 1.32021, 6.83268 )
-current = true
-script = ExtResource( 2 )
+sideFrictionCurve = SubResource( 9 )
+minRange = 0.2
+motor = true
+springForce = 24.0
+previewFrequency = 1.0
+forwardFriction = 2.0
+sideSlipMax = 4.0
+forwardFrictionCurve = SubResource( 5 )
+maxSteerForce = 0.5
+forwardSlipMax = 2.0
+sideFriction = 10.0

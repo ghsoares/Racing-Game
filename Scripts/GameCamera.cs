@@ -4,35 +4,39 @@ using Godot;
 public class GameCamera : Camera
 {
     public Transform cameraTransform { get; private set; }
+    public Vector3 prevPos { get; private set; }
+    public Vector3 velocity { get; private set; }
+    public Basis cameraBasis { get; private set; }
 
-    [Export] public float lerpPosition = 8f;
-    [Export] public float lerpRotation = 4f;
+    [Export] public float zoom = 16f;
+    [Export] public float lerpSpeed = 8f;
+    [Export] public float lookAheadWeight = .5f;
 
     public override void _Ready()
     {
         cameraTransform = GlobalTransform;
+        cameraBasis = cameraTransform.basis;
+        prevPos = GlobalTransform.origin;
     }
 
     public override void _PhysicsProcess(float delta)
     {
-        Transform t = cameraTransform;
-        Vector3 pos = cameraTransform.origin;
-        Quat rot = new Quat(cameraTransform.basis).Normalized();
-        Quat desiredRot = new Quat(GlobalTransform.basis).Normalized();
+        Transform desiredTransform = GlobalTransform;
+        Vector3 o = desiredTransform.origin;
 
-        pos = pos.LinearInterpolate(
-            GlobalTransform.origin, Mathf.Clamp(lerpPosition * delta, 0f, 1f)
+        velocity = (GlobalTransform.origin - prevPos) / delta;
+        velocity *= new Vector3(1f, 0f, 1f);
+
+        o += cameraBasis.z * zoom + velocity * lookAheadWeight;
+
+        desiredTransform.origin = o;
+        desiredTransform.basis = cameraBasis;
+
+        cameraTransform = cameraTransform.InterpolateWith(
+            desiredTransform, Mathf.Clamp(delta * lerpSpeed, 0f, 1f)
         );
-        if (rot.IsNormalized() && desiredRot.IsNormalized())
-        {
-            rot = rot.Slerp(
-                desiredRot, Mathf.Clamp(lerpRotation * delta, 0f, 1f)
-            );
-        }
 
-        t.origin = pos;
-        t.basis = new Basis(rot);
-        cameraTransform = t;
+        prevPos = GlobalTransform.origin;
     }
 
     public override void _Process(float delta)

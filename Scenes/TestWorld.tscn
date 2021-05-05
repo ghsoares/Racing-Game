@@ -1,30 +1,180 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=25 format=2]
 
-[ext_resource path="res://Scenes/Car.tscn" type="PackedScene" id=1]
-[ext_resource path="res://icon.png" type="Texture" id=2]
+[ext_resource path="res://Scripts/Terrain.cs" type="Script" id=1]
+[ext_resource path="res://Scenes/TestPoint.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Scripts/Road/RoadMesh.cs" type="Script" id=3]
+[ext_resource path="res://Scripts/DebugCamera.cs" type="Script" id=4]
+[ext_resource path="res://Scripts/Road/RoadManager.cs" type="Script" id=5]
+[ext_resource path="res://Scripts/Road/RoadPath.cs" type="Script" id=6]
+[ext_resource path="res://icon.png" type="Texture" id=7]
+[ext_resource path="res://Scripts/SpatialDebugger.cs" type="Script" id=8]
 
-[sub_resource type="BoxShape" id=1]
-extents = Vector3( 256, 0.2, 256 )
+[sub_resource type="OpenSimplexNoise" id=1]
+seed = 2
+octaves = 2
+period = 96.0
+persistence = 0.4
 
-[sub_resource type="SpatialMaterial" id=2]
+[sub_resource type="OpenSimplexNoise" id=2]
+seed = 2
+octaves = 1
+period = 256.0
+
+[sub_resource type="Curve" id=3]
+_data = [ Vector2( 0.204291, 0.0337423 ), 0.0, 0.038089, 0, 0, Vector2( 1, 1 ), -0.0103734, 0.0, 0, 0 ]
+
+[sub_resource type="Shader" id=4]
+code = "shader_type spatial;
+render_mode unshaded;
+
+uniform vec3 lightVec = vec3(1f, -1f, 1f);
+uniform sampler2D albedo : hint_albedo;
+uniform vec4 albedoColor : hint_color = vec4(1f);
+uniform sampler2D waterNoise;
+uniform vec2 waterNoiseTiling = vec2(512f);
+uniform vec2 waterNoiseMotion;
+uniform float waterNoiseMagnitude = 1f;
+uniform sampler2D waterGradient : hint_albedo;
+uniform float waterDepth = 2f;
+uniform float foamWidth = 1f;
+uniform vec4 foamColor : hint_color = vec4(1f);
+uniform sampler2D lightGradient : hint_albedo;
+uniform float lightSteps = 2f;
+
+void fragment() {
+	vec4 col = texture(albedo, UV) * albedoColor;
+	
+	vec3 worldNormal = (CAMERA_MATRIX * vec4(NORMAL, 0f)).xyz;
+	vec3 worldVertex = (CAMERA_MATRIX * vec4(VERTEX, 1f)).xyz;
+	
+	float d = dot(worldNormal, normalize(lightVec)) * .5f + .5f;
+	d = clamp(1f - d, 0f, 1f);
+	d = floor(d * lightSteps) / (lightSteps - 1f);
+	float waterPos = -worldVertex.y;
+	float waterN = texture(waterNoise, (worldVertex.xz + waterNoiseMotion * TIME) / waterNoiseTiling).r * 2f - 1f;
+	
+	waterPos += waterN * waterNoiseMagnitude;
+	
+	float waterD = clamp(waterPos / waterDepth, 0f, 1f);
+	vec4 water = texture(waterGradient, vec2(waterD));
+	water = mix(water, foamColor, waterPos <= foamWidth ? 1f : 0f);
+	
+	col *= texture(lightGradient, vec2(d));
+	col.rgb = mix(col.rgb, water.rgb, water.a * (waterD > 0f ? 1.0 : 0.0));
+	
+	ALBEDO = col.rgb;
+}
+
+
+
+
+
+
+
+
+"
+
+[sub_resource type="Gradient" id=5]
+colors = PoolColorArray( 0.288086, 0.227036, 0.227036, 1, 1, 1, 1, 1 )
+
+[sub_resource type="GradientTexture" id=6]
+gradient = SubResource( 5 )
+
+[sub_resource type="Gradient" id=7]
+colors = PoolColorArray( 0, 0.878431, 1, 0.490196, 0, 0.478431, 1, 0.784314 )
+
+[sub_resource type="GradientTexture" id=8]
+gradient = SubResource( 7 )
+
+[sub_resource type="OpenSimplexNoise" id=9]
+
+[sub_resource type="NoiseTexture" id=10]
+seamless = true
+noise = SubResource( 9 )
+
+[sub_resource type="ShaderMaterial" id=11]
+shader = SubResource( 4 )
+shader_param/lightVec = Vector3( -1, -1, -1 )
+shader_param/albedoColor = Color( 0, 1, 0.505882, 1 )
+shader_param/waterNoiseTiling = Vector2( 128, 128 )
+shader_param/waterNoiseMotion = Vector2( 8, 8 )
+shader_param/waterNoiseMagnitude = 2.0
+shader_param/waterDepth = 32.0
+shader_param/foamWidth = 0.5
+shader_param/foamColor = Color( 1, 1, 1, 1 )
+shader_param/lightSteps = 256.0
+shader_param/waterNoise = SubResource( 10 )
+shader_param/waterGradient = SubResource( 8 )
+shader_param/lightGradient = SubResource( 6 )
+
+[sub_resource type="Curve3D" id=12]
+_data = {
+"points": PoolVector3Array(  ),
+"tilts": PoolRealArray(  )
+}
+
+[sub_resource type="OpenSimplexNoise" id=13]
+seed = 1
+octaves = 1
+
+[sub_resource type="SpatialMaterial" id=14]
 flags_unshaded = true
-albedo_texture = ExtResource( 2 )
-uv1_triplanar = true
+albedo_color = Color( 0.211765, 0.211765, 0.211765, 1 )
+albedo_texture = ExtResource( 7 )
 
-[sub_resource type="CubeMesh" id=3]
-material = SubResource( 2 )
-size = Vector3( 512, 0.4, 512 )
+[sub_resource type="SphereMesh" id=15]
+radius = 4.0
+height = 8.0
+
+[sub_resource type="SpatialMaterial" id=16]
+flags_unshaded = true
+flags_no_depth_test = true
+vertex_color_use_as_albedo = true
 
 [node name="TestWorld" type="Spatial"]
 
-[node name="Car" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65621, 0 )
+[node name="Terrain" type="Spatial" parent="."]
+script = ExtResource( 1 )
+baseNoise = SubResource( 1 )
+mountainNoise = SubResource( 2 )
+mountainCurve = SubResource( 3 )
+heightRange = Vector2( -32, 160 )
+chunkSize = Vector2( 512, 512 )
+subdivision = 64
+material = SubResource( 11 )
 
-[node name="StaticBody" type="StaticBody" parent="."]
+[node name="Road" type="Spatial" parent="."]
+script = ExtResource( 5 )
 
-[node name="CollisionShape" type="CollisionShape" parent="StaticBody"]
-shape = SubResource( 1 )
+[node name="Path" type="Path" parent="Road"]
+curve = SubResource( 12 )
+script = ExtResource( 6 )
+initialRadius = 512.0
+smoothWeight = 0.3
+elevationNoise = SubResource( 13 )
+elevationRange = Vector2( 4, 64 )
+elevationCorrection = 0.25
+testScene = ExtResource( 2 )
 
-[node name="MeshInstance" type="MeshInstance" parent="StaticBody"]
-mesh = SubResource( 3 )
+[node name="Mesh" type="MeshInstance" parent="Road"]
+material_override = SubResource( 14 )
+script = ExtResource( 3 )
+roadWidth = 4.0
+capLength = 16.0
+tileUV = true
+
+[node name="DebugCamera" type="Camera" parent="."]
+transform = Transform( -1, 2.34304e-08, -8.42245e-08, -4.49646e-08, 0.688367, 0.725362, 7.49729e-08, 0.725362, -0.688367, -4.76837e-07, 84.1668, -69.6612 )
+far = 2000.0
+script = ExtResource( 4 )
+lerpSpeed = 16.0
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+visible = false
+material_override = SubResource( 11 )
+mesh = SubResource( 15 )
 material/0 = null
+
+[node name="DrawDebugger" type="Node" parent="."]
+script = ExtResource( 8 )
+debugMaterial = SubResource( 16 )
